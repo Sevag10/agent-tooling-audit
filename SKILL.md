@@ -1,6 +1,6 @@
 ---
 name: agent-tooling-audit
-description: Use when the user asks which skills, plugins, extensions, MCP servers, hooks, rules or subagents fit a project — "what should I use for this project", "find me useful skills/MCP servers", "is my agent setup right for this", "what am I missing", or when starting work in a new repo and the tooling fit is unknown. Works with Claude Code, Codex, Cursor and Gemini CLI.
+description: Use when the user asks which skills, plugins, extensions, MCP servers, hooks, rules or subagents fit a project — "what should I use for this project", "find me useful skills/MCP servers", "is my agent setup right for this", "what am I missing", or when starting work in a new repo and the tooling fit is unknown. Works with Claude Code, Codex, Cursor, Gemini CLI and Antigravity.
 ---
 
 # Agent Tooling Audit
@@ -13,8 +13,8 @@ Recommend only. Install, enable or disable nothing until the user approves.
 
 ## Steps
 
-1. **Inventory (one call):** `python scripts/inventory.py <project_dir>` (`python3` on macOS/Linux; the path is relative to this skill's folder). It detects Claude Code, Codex, Cursor and Gemini CLI and lists, for each one present: skills, plugins/extensions (on/off), MCP servers and hooks, plus the project's context files and agent config. Some tooling isn't on disk — cloud connectors, account-level plugins, tools your host injects — so add those from your own tool list. Focus on the agent you're running in; mention the others only where it helps (e.g. a skill installed for one agent but not the one in use). Note duplicates: the same MCP server configured twice for one agent.
-2. **Profile the project:** manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, …), CI config, existing hooks and what they match. Check the context files actually load for the agent in use — Claude Code reads `CLAUDE.md`, Codex and Cursor read `AGENTS.md`, Gemini CLI reads `GEMINI.md` by default — and flag one written for another agent that nothing here loads. If the project keeps notes on its goals or stack (README roadmap, docs folder), check their claims against the code; stale notes are common.
+1. **Name the agent you're running in, then inventory (one call).** Decide which agent you are — Claude Code, Codex, Cursor, Gemini CLI, Antigravity or another — and state it in your first line. Everything after this is about **that agent only**. Then run `python scripts/inventory.py <project_dir>` (`python3` on macOS/Linux; the path is relative to this skill's folder). It lists, for every agent installed on the machine: skills, plugins/extensions (on/off), MCP servers and hooks, plus the project's context files. Other agents' sections are not your tooling — a Claude Code plugin does nothing in Cursor — so never count them as "already covered" or recommend their config. If your agent has no section, say so and build its inventory from your own tool list and your agent's docs. Some tooling isn't on disk anyway (cloud connectors, account-level plugins, tools your host injects); add those from your tool list. Mention other agents only where it helps (e.g. a skill installed for one agent but not the one in use). Note duplicates: the same MCP server configured twice for one agent.
+2. **Profile the project:** manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, …), CI config, existing hooks and what they match. Check the context files actually load for the agent in use — Claude Code reads `CLAUDE.md`, Codex and Cursor read `AGENTS.md`, Gemini CLI reads `GEMINI.md` by default, Antigravity reads `AGENTS.md` or `GEMINI.md` plus `.agents/rules/*.md` — and flag one written for another agent that nothing here loads. If the project keeps notes on its goals or stack (README roadmap, docs folder), check their claims against the code; stale notes are common.
 3. **Search for gaps** — for each need nothing installed covers:
    - Claude Code plugin marketplaces on disk, if present: `python scripts/inventory.py --catalog <words>`. Use narrow vendor/framework words (`neon stripe expo`), not generic ones (`performance` floods).
    - The web: skill registries, vendor-published MCP servers, GitHub skill repos for this stack. Official or vendor-published sources: the README is enough. Any other third-party skill or server: read every file before recommending it; flag curl-pipe-shell, eval, telemetry and credential access.
@@ -23,7 +23,7 @@ Recommend only. Install, enable or disable nothing until the user approves.
 
 ## Report
 
-Output exactly these sections, each item one line with the *why* tied to this project:
+Open with one line naming the agent audited (e.g. "Audit for Cursor"). Then output exactly these sections, each item one line with the *why* tied to this project:
 
 1. **Already covered** — installed and fitting (brief; names only where obvious)
 2. **Turn on / turn off here** — per-project enable/disable changes
@@ -42,4 +42,5 @@ Max 3 items in Install and Build, ranked. End by offering to apply any of them.
 | Installing during the audit | Recommend only; apply after approval |
 | Adding more skills to an already crowded category | Suggest pruning before adding |
 | Guard hook covers files but not MCP tools | Matchers must include the MCP tool names |
-| Giving another agent's config format or install command | Commands and keys must match the agent in use |
+| Auditing the agent with the richest inventory section instead of your own (e.g. `.claude/settings.json` or `claude plugin install` suggested inside Cursor or Antigravity) | Name your agent first (step 1); every path, key, hook event and install command must be that agent's |
+| Listing another agent's plugins as "already covered" | They only cover the agent they're installed for |

@@ -1,5 +1,5 @@
-"""Inventory of installed coding-agent tooling (Claude Code, Codex, Cursor, Gemini CLI),
-plus a search of the Claude Code plugin marketplaces on disk.
+"""Inventory of installed coding-agent tooling (Claude Code, Codex, Cursor, Gemini CLI,
+Antigravity), plus a search of the Claude Code plugin marketplaces on disk.
 
   python inventory.py [project_dir]          what is installed (user + project scope)
   python inventory.py --catalog WORD [WORD]  Claude Code marketplace plugins matching any word
@@ -67,7 +67,9 @@ def hook_events(path):
 
 
 def shared(project):
-    print("== SHARED SKILLS (.agents/skills — read by Codex, Cursor, Gemini CLI) ==")
+    print("Sections below cover every agent found on this machine. Audit only the one you are")
+    print("running in; if it has no section, this script doesn't cover it — never use another's.\n")
+    print("== SHARED SKILLS (.agents/skills — read by Codex, Cursor, Gemini CLI, Antigravity) ==")
     show("user ~/.agents/skills", skills_in(HOME / ".agents" / "skills"))
     show("project .agents/skills", skills_in(project / ".agents" / "skills"))
 
@@ -75,7 +77,8 @@ def shared(project):
     names = ("CLAUDE.md", "AGENTS.md", "AGENTS.override.md", "GEMINI.md", ".cursorrules",
              ".github/copilot-instructions.md", ".mcp.json")
     show("files", [n for n in names if (project / n).is_file()])
-    print("  loads by default: Claude Code → CLAUDE.md · Codex, Cursor → AGENTS.md · Gemini CLI → GEMINI.md")
+    print("  loads by default: Claude Code → CLAUDE.md · Codex, Cursor → AGENTS.md · Gemini CLI → GEMINI.md"
+          " · Antigravity → AGENTS.md or GEMINI.md, .agents/rules/*.md")
 
 
 def claude_code(project):
@@ -184,6 +187,34 @@ def gemini(project):
     show("global GEMINI.md", ["~/.gemini/GEMINI.md"] if (user / "GEMINI.md").is_file() else [])
 
 
+def antigravity(project):
+    print("\n== ANTIGRAVITY ==")
+    gem, proj = HOME / ".gemini", project / ".agents"
+    cfg, cli = gem / "config", gem / "antigravity-cli"
+    if not any(d.is_dir() for d in (cfg, cli, gem / "antigravity")) and not proj.is_dir():
+        print("  not found")
+        return
+    show("skills (app/IDE ~/.gemini/config/skills)", skills_in(cfg / "skills"))
+    show("skills (IDE legacy ~/.gemini/antigravity/skills)", skills_in(gem / "antigravity" / "skills"))
+    show("skills (CLI ~/.gemini/antigravity-cli/skills)", skills_in(cli / "skills"))
+    for plugins in (cfg / "plugins", cli / "plugins"):
+        for p in sorted(d for d in plugins.glob("*") if d.is_dir()):
+            meta = load(p / "plugin.json")
+            print(f"  plugin: {meta.get('name', p.name)} — {short(meta.get('description'), 90)}")
+            sk = skills_in(p / "skills")
+            if sk:
+                print(f"        skills: {', '.join(sk)}")
+    show("mcp (global ~/.gemini/config/mcp_config.json)", list(load(cfg / "mcp_config.json").get("mcpServers", {})))
+    show("mcp (project .agents/mcp_config.json)", list(load(proj / "mcp_config.json").get("mcpServers", {})))
+    for label, f in (("global", cfg / "hooks.json"), ("project", proj / "hooks.json")):
+        hooks = load(f)
+        show(f"hooks ({label})", [f"{name}: {', '.join(k for k in h if k != 'enabled')}"
+                                  for name, h in hooks.items() if isinstance(h, dict)])
+    show("global rules (~/.gemini/config/rules)", sorted(p.name for p in (cfg / "rules").glob("*.md")))
+    show("project rules (.agents/rules)", sorted(p.name for p in (proj / "rules").glob("*.md")))
+    print("  app MCP servers are managed in Settings > Customizations, not on disk")
+
+
 def catalog(words):
     installed = set(load(PLUGINS / "installed_plugins.json").get("plugins", {}))
     alts = "|".join(re.escape(w) for w in words) if words else r"\w+"
@@ -213,3 +244,4 @@ if __name__ == "__main__":
         codex(project)
         cursor(project)
         gemini(project)
+        antigravity(project)
