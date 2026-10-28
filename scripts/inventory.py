@@ -18,9 +18,15 @@ PLUGINS = CLAUDE / "plugins"
 
 def load(path):
     try:
-        return json.loads(Path(path).read_text(encoding="utf-8"))
+        data = json.loads(Path(path).read_text(encoding="utf-8-sig"))
     except (OSError, ValueError):
         return {}
+    return data if isinstance(data, dict) else {}
+
+
+def names(value):
+    """Keys of a config object; anything else (list, string, null) counts as empty."""
+    return list(value) if isinstance(value, dict) else []
 
 
 def frontmatter(skill_md):
@@ -63,7 +69,7 @@ def toml_tables(path, prefix):
 def hook_events(path):
     """Event names in a hooks.json, whether nested under "hooks" or at the top level."""
     data = load(path)
-    return sorted(data.get("hooks", data)) if isinstance(data, dict) else []
+    return sorted(names(data.get("hooks", data)))
 
 
 def shared(project):
@@ -91,8 +97,13 @@ def claude_code(project):
 
     on = {}
     for f in ("settings.json", "settings.local.json"):
-        on.update(load(CLAUDE / f).get("enabledPlugins", {}))
+        ep = load(CLAUDE / f).get("enabledPlugins")
+        if isinstance(ep, dict):
+            on.update(ep)
     for key, installs in load(PLUGINS / "installed_plugins.json").get("plugins", {}).items():
+        if not (isinstance(installs, list) and installs and isinstance(installs[-1], dict)
+                and installs[-1].get("installPath")):
+            continue
         path = Path(installs[-1]["installPath"])
         meta = load(path / ".claude-plugin" / "plugin.json")
         state = "on " if on.get(key) else "off"
@@ -106,13 +117,13 @@ def claude_code(project):
             print(f"        mcp: {', '.join(mcp)}")
 
     cfg = load(HOME / ".claude.json")
-    show("mcp (user)", list(cfg.get("mcpServers", {})))
-    show("mcp (local, this project)", list(cfg.get("projects", {}).get(project.as_posix(), {}).get("mcpServers", {})))
-    show("mcp (project .mcp.json)", list(load(project / ".mcp.json").get("mcpServers", {})))
+    show("mcp (user)", names(cfg.get("mcpServers", {})))
+    show("mcp (local, this project)", names(cfg.get("projects", {}).get(project.as_posix(), {}).get("mcpServers", {})))
+    show("mcp (project .mcp.json)", names(load(project / ".mcp.json").get("mcpServers", {})))
     print("  claude.ai connectors: not on disk — read them from your own tool list")
 
     user = load(CLAUDE / "settings.json")
-    show("hooks (user)", list(user.get("hooks", {})))
+    show("hooks (user)", names(user.get("hooks", {})))
     off = [k for k, v in user.get("skillOverrides", {}).items() if v == "off"]
     print(f"  skills turned off (user): {len(off)}")
 
@@ -125,7 +136,7 @@ def claude_code(project):
     for f in ("settings.json", "settings.local.json"):
         s = load(proj / f)
         if s.get("hooks"):
-            show(f"project hooks ({f})", list(s["hooks"]))
+            show(f"project hooks ({f})", names(s["hooks"]))
         for key in ("enabledPlugins", "skillOverrides"):
             if s.get(key):
                 print(f"  project {key} ({f}): {s[key]}")
@@ -155,8 +166,8 @@ def cursor(project):
         return
     show("skills (user ~/.cursor/skills)", skills_in(user / "skills"))
     show("skills (project .cursor/skills)", skills_in(proj / "skills"))
-    show("mcp (user ~/.cursor/mcp.json)", list(load(user / "mcp.json").get("mcpServers", {})))
-    show("mcp (project .cursor/mcp.json)", list(load(proj / "mcp.json").get("mcpServers", {})))
+    show("mcp (user ~/.cursor/mcp.json)", names(load(user / "mcp.json").get("mcpServers", {})))
+    show("mcp (project .cursor/mcp.json)", names(load(proj / "mcp.json").get("mcpServers", {})))
     show("hooks (user)", hook_events(user / "hooks.json"))
     show("hooks (project)", hook_events(proj / "hooks.json"))
     show("project rules (.cursor/rules)", sorted(p.name for p in (proj / "rules").glob("*")))
@@ -173,8 +184,8 @@ def gemini(project):
     show("skills (project .gemini/skills)", skills_in(proj / "skills"))
     for label, d in (("user", user), ("project", proj)):
         s = load(d / "settings.json")
-        show(f"mcp ({label} settings.json)", list(s.get("mcpServers", {})))
-        show(f"hooks ({label} settings.json)", list(s.get("hooks", {})))
+        show(f"mcp ({label} settings.json)", names(s.get("mcpServers", {})))
+        show(f"hooks ({label} settings.json)", names(s.get("hooks", {})))
     for label, d in (("user", user), ("project", proj)):
         for m in sorted((d / "extensions").glob("*/gemini-extension.json")):
             meta = load(m)
@@ -204,8 +215,8 @@ def antigravity(project):
             sk = skills_in(p / "skills")
             if sk:
                 print(f"        skills: {', '.join(sk)}")
-    show("mcp (global ~/.gemini/config/mcp_config.json)", list(load(cfg / "mcp_config.json").get("mcpServers", {})))
-    show("mcp (project .agents/mcp_config.json)", list(load(proj / "mcp_config.json").get("mcpServers", {})))
+    show("mcp (global ~/.gemini/config/mcp_config.json)", names(load(cfg / "mcp_config.json").get("mcpServers", {})))
+    show("mcp (project .agents/mcp_config.json)", names(load(proj / "mcp_config.json").get("mcpServers", {})))
     for label, f in (("global", cfg / "hooks.json"), ("project", proj / "hooks.json")):
         hooks = load(f)
         show(f"hooks ({label})", [f"{name}: {', '.join(k for k in h if k != 'enabled')}"
@@ -224,6 +235,8 @@ def catalog(words):
         found = True
         market = mp.parent.parent.name
         for p in load(mp).get("plugins", []):
+            if not isinstance(p, dict) or not p.get("name"):
+                continue
             if pat.search(f"{p.get('name')} {p.get('description', '')}"):
                 key = f"{p['name']}@{market}"
                 tag = "INSTALLED " if key in installed else ""
@@ -239,9 +252,8 @@ if __name__ == "__main__":
         catalog(args[1:])
     else:
         project = Path(args[0] if args else ".").resolve()
-        shared(project)
-        claude_code(project)
-        antigravity(project)
-        cursor(project)
-        codex(project)
-        gemini(project)
+        for section in (shared, claude_code, antigravity, cursor, codex, gemini):
+            try:
+                section(project)
+            except Exception as e:  # one malformed config must not hide every other agent
+                print(f"  could not read this section: {type(e).__name__}: {e}")
