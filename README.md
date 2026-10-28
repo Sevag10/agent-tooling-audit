@@ -12,8 +12,8 @@ The skill is the whole repo. Clone it into your agent's skills folder:
 
 | Agent | Command |
 |---|---|
-| Codex, Cursor, Gemini CLI | `git clone https://github.com/Sevag10/agent-tooling-audit ~/.agents/skills/agent-tooling-audit` |
 | Claude Code | `git clone https://github.com/Sevag10/agent-tooling-audit ~/.claude/skills/agent-tooling-audit` |
+| Codex, Cursor, Gemini CLI | `git clone https://github.com/Sevag10/agent-tooling-audit ~/.agents/skills/agent-tooling-audit` |
 
 To install it for a single project, clone it into that repo's `.agents/skills/` (or `.claude/skills/` for Claude Code).
 
