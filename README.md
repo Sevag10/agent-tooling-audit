@@ -21,7 +21,16 @@ Needs Python 3.8+. The script uses only the standard library.
 
 ## Use
 
-Open your agent in a project and ask something like:
+Open your agent in a project and run the skill directly:
+
+| Agent | Command |
+|---|---|
+| Claude Code | `/agent-tooling-audit` |
+| Cursor | `/agent-tooling-audit` in Agent chat |
+| Codex | `$agent-tooling-audit` (or pick it from `/skills`) |
+| Gemini CLI | No per-skill command: ask in plain words (below) and approve the activation prompt. `/skills list` shows whether it loaded. |
+
+Or just ask. The skill triggers on its own when you say something like:
 
 - "What should I use for this project?"
 - "Is my agent setup right for this repo?"
