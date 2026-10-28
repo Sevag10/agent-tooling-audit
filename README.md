@@ -4,9 +4,11 @@ An [Agent Skill](https://agentskills.io) that audits a project's AI tooling. It 
 
 It starts from what you **already have** installed (skills, plugins, extensions, MCP servers, hooks) and searches for new tooling only where there's a real gap. That avoids the two usual mistakes: recommending things you already own, and never looking past them.
 
-Works with **Claude Code, Codex, Cursor, Gemini CLI and Antigravity**. Any other agent that reads `SKILL.md` can follow the steps too; it just won't get an automatic inventory.
+Works with **Claude Code, Antigravity, Cursor and Codex**. Any other agent that reads `SKILL.md` can follow the steps too; it just won't get an automatic inventory.
 
-**Tested with:** Claude Code, Cursor and Antigravity. Codex and Gemini CLI are supported by the inventory script but not yet tested end to end. Reports welcome.
+Gemini CLI is also supported, for the paid Code Assist and API-key users who still have it. Google moved individual users to Antigravity in 2026.
+
+**Tested with:** Claude Code, Antigravity and Cursor. Codex and Gemini CLI are supported by the inventory script but not yet tested end to end. Reports welcome.
 
 ## Install
 
@@ -15,9 +17,9 @@ The skill is the whole repo. Clone it into your agent's skills folder:
 | Agent | Command |
 |---|---|
 | Claude Code | `git clone https://github.com/Sevag10/agent-tooling-audit ~/.claude/skills/agent-tooling-audit` |
-| Codex, Cursor, Gemini CLI | `git clone https://github.com/Sevag10/agent-tooling-audit ~/.agents/skills/agent-tooling-audit` |
 | Antigravity (app, IDE) | `git clone https://github.com/Sevag10/agent-tooling-audit ~/.gemini/config/skills/agent-tooling-audit` |
 | Antigravity CLI | `git clone https://github.com/Sevag10/agent-tooling-audit ~/.gemini/antigravity-cli/skills/agent-tooling-audit` |
+| Cursor, Codex (and Gemini CLI) | `git clone https://github.com/Sevag10/agent-tooling-audit ~/.agents/skills/agent-tooling-audit` |
 
 To install it for a single project, clone it into that repo's `.agents/skills/` (all agents except Claude Code) or `.claude/skills/` (Claude Code).
 
@@ -30,10 +32,10 @@ Open your agent in a project and run the skill directly:
 | Agent | Command |
 |---|---|
 | Claude Code | `/agent-tooling-audit` |
+| Antigravity | `/agent-tooling-audit` in the app or CLI. In the IDE, ask by name ("use the agent-tooling-audit skill"); the Customizations menu shows whether it loaded. |
 | Cursor | `/agent-tooling-audit` in Agent chat |
 | Codex | `$agent-tooling-audit` (or pick it from `/skills`) |
 | Gemini CLI | No per-skill command: ask in plain words (below) and approve the activation prompt. `/skills list` shows whether it loaded. |
-| Antigravity | `/agent-tooling-audit` in the app or CLI. In the IDE, ask by name ("use the agent-tooling-audit skill"); the Customizations menu shows whether it loaded. |
 
 Or just ask. The skill triggers on its own when you say something like:
 
@@ -43,7 +45,7 @@ Or just ask. The skill triggers on its own when you say something like:
 
 The agent will:
 
-1. **Take inventory** by running `scripts/inventory.py`, which reads each installed agent's config: skills, plugins/extensions with on/off state, MCP servers, hooks, and the project's context files (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.cursor/rules`, …).
+1. **Take inventory** by running `scripts/inventory.py`, which reads each installed agent's config: skills, plugins/extensions with on/off state, MCP servers, hooks, and the project's context files (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.agents/rules`, `.cursor/rules`, …).
 2. **Profile the project** from its manifest, CI and existing hooks, and flag context files that the agent you're using won't load.
 3. **Search for gaps** in local Claude Code plugin marketplaces (`inventory.py --catalog <words>`) and on the web. It reads third-party code before recommending it.
 4. **Check fit**: tooling that's enabled but irrelevant here costs context on every turn, so it suggests per-project switches.
@@ -64,10 +66,10 @@ python scripts/inventory.py --catalog stripe neon expo
 |---|---|---|---|
 | Shared | `~/.agents/skills`, `.agents/skills` | `.mcp.json` | – |
 | Claude Code | `~/.claude/skills`, plugins, `.claude/skills` | `~/.claude.json`, plugins | `settings.json` |
-| Codex | `~/.codex/skills` (legacy) | `config.toml` `[mcp_servers.*]` | `hooks.json`, `config.toml` `[hooks]` |
-| Cursor | `~/.cursor/skills`, `.cursor/skills` | `mcp.json` | `hooks.json` |
-| Gemini CLI | `~/.gemini/skills`, `.gemini/skills`, extensions | `settings.json`, extensions | `settings.json` |
 | Antigravity | `~/.gemini/config/skills`, `~/.gemini/antigravity-cli/skills`, plugins | `mcp_config.json` (global and `.agents/`) | `hooks.json` (global and `.agents/`) |
+| Cursor | `~/.cursor/skills`, `.cursor/skills` | `mcp.json` | `hooks.json` |
+| Codex | `~/.codex/skills` (legacy) | `config.toml` `[mcp_servers.*]` | `hooks.json`, `config.toml` `[hooks]` |
+| Gemini CLI | `~/.gemini/skills`, `.gemini/skills`, extensions | `settings.json`, extensions | `settings.json` |
 
 Agents change their config layouts often. If a path is out of date, please open an issue or PR.
 

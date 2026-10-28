@@ -1,5 +1,5 @@
-"""Inventory of installed coding-agent tooling (Claude Code, Codex, Cursor, Gemini CLI,
-Antigravity), plus a search of the Claude Code plugin marketplaces on disk.
+"""Inventory of installed coding-agent tooling (Claude Code, Antigravity, Cursor, Codex,
+Gemini CLI), plus a search of the Claude Code plugin marketplaces on disk.
 
   python inventory.py [project_dir]          what is installed (user + project scope)
   python inventory.py --catalog WORD [WORD]  Claude Code marketplace plugins matching any word
@@ -69,7 +69,7 @@ def hook_events(path):
 def shared(project):
     print("Sections below cover every agent found on this machine. Audit only the one you are")
     print("running in; if it has no section, this script doesn't cover it — never use another's.\n")
-    print("== SHARED SKILLS (.agents/skills — read by Codex, Cursor, Gemini CLI, Antigravity) ==")
+    print("== SHARED SKILLS (.agents/skills — read by Antigravity, Cursor, Codex, Gemini CLI) ==")
     show("user ~/.agents/skills", skills_in(HOME / ".agents" / "skills"))
     show("project .agents/skills", skills_in(project / ".agents" / "skills"))
 
@@ -241,7 +241,7 @@ if __name__ == "__main__":
         project = Path(args[0] if args else ".").resolve()
         shared(project)
         claude_code(project)
-        codex(project)
-        cursor(project)
-        gemini(project)
         antigravity(project)
+        cursor(project)
+        codex(project)
+        gemini(project)
