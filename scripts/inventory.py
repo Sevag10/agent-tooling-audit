@@ -16,12 +16,21 @@ CLAUDE = HOME / ".claude"
 PLUGINS = CLAUDE / "plugins"
 
 
+UNREADABLE = []  # config files that exist but couldn't be parsed — their "-" lines are unknown, not empty
+
+
 def load(path):
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8-sig"))
-    except (OSError, ValueError):
+    except OSError:
         return {}
-    return data if isinstance(data, dict) else {}
+    except ValueError:
+        data = None
+    if isinstance(data, dict):
+        return data
+    if str(path) not in UNREADABLE:
+        UNREADABLE.append(str(path))
+    return {}
 
 
 def names(value):
@@ -256,4 +265,9 @@ if __name__ == "__main__":
             try:
                 section(project)
             except Exception as e:  # one malformed config must not hide every other agent
-                print(f"  could not read this section: {type(e).__name__}: {e}")
+                print(f"  !! INCOMPLETE SECTION — stopped early ({type(e).__name__}: {e}); inspect this agent's config by hand")
+        if UNREADABLE:
+            print("\n!! INCOMPLETE INVENTORY — these config files exist but couldn't be parsed, so their")
+            print("!! entries above show '-' even if tools are configured. Read them by hand before reporting:")
+            for f in UNREADABLE:
+                print(f"!!   {f}")
