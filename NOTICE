@@ -1,0 +1,11 @@
+agent-tooling-audit
+Copyright 2026 Sevag Dirarian
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This project includes the following files, unmodified, from the claude-code-setup
+plugin in https://github.com/anthropics/claude-plugins-official, Copyright Anthropic,
+licensed under the Apache License, Version 2.0:
+
+  references/hooks-patterns.md
+  references/subagent-templates.md
