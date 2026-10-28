@@ -6,7 +6,7 @@ It starts from what you **already have** installed (skills, plugins, extensions,
 
 Works with **Claude Code, Codex, Cursor, Gemini CLI and Antigravity**. Any other agent that reads `SKILL.md` can follow the steps too; it just won't get an automatic inventory.
 
-**Tested with:** Claude Code and Cursor. Codex, Gemini CLI and Antigravity are supported by the inventory script but not yet tested end to end. Reports welcome.
+**Tested with:** Claude Code, Cursor and Antigravity. Codex and Gemini CLI are supported by the inventory script but not yet tested end to end. Reports welcome.
 
 ## Install
 
