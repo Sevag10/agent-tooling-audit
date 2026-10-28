@@ -6,6 +6,8 @@ It starts from what you **already have** installed (skills, plugins, extensions,
 
 Works with **Claude Code, Codex, Cursor and Gemini CLI**. Any other agent that reads `SKILL.md` can follow the steps too; it just won't get an automatic inventory.
 
+**Tested with:** Claude Code and Cursor. Codex and Gemini CLI are supported by the inventory script but not yet tested end to end. Reports welcome.
+
 ## Install
 
 The skill is the whole repo. Clone it into your agent's skills folder:
