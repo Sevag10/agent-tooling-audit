@@ -12,7 +12,15 @@ Gemini CLI is also supported, for the paid Code Assist and API-key users who sti
 
 ## Install
 
-The skill is the whole repo. Clone it into your agent's skills folder:
+**One command, any agent**, via [skills.sh](https://skills.sh):
+
+```bash
+npx skills add Sevag10/agent-tooling-audit
+```
+
+It asks which agents to install it for and installs into the current project; add `-g` to install it for all your projects.
+
+**Or clone it yourself.** The skill is the whole repo, so clone it into your agent's skills folder:
 
 | Agent | Command |
 |---|---|
@@ -52,6 +60,28 @@ The agent will:
 5. **Look for project-specific automations**, such as formatter/linter/test hooks, guards for secrets and production databases, and custom skills.
 
 You get a short report with five sections: **Already covered · Turn on / off here · Install · Build · Skip**. Install and Build list at most 3 items each. Nothing is installed or changed until you approve.
+
+### Example
+
+Cursor on a small Next.js + Stripe + Prettier + Vitest project (trimmed):
+
+```text
+1. Already covered
+   - Next.js / React guidance from installed skills; Context7 MCP for live docs
+2. Turn on / turn off here
+   - Don't add Shopify, GSAP or Supabase servers to .cursor/mcp.json: none are in package.json
+3. Install
+   - Stripe's official plugin (/add-plugin stripe): stripe is a dependency and nothing covers it
+4. Build
+   - AGENTS.md: the repo has no context file Cursor loads
+   - .cursor/hooks.json hook that runs Prettier on edited files (.prettierrc exists)
+   - Guard that blocks .env* access and Stripe MCP write calls, not just file edits
+5. Skip
+   - `claude plugin install stripe@...`: Claude Code format, not Cursor
+   - Another docs MCP: Context7 already covers it
+
+I did not install or enable anything. I can apply any of these next.
+```
 
 ### Running the script yourself
 
